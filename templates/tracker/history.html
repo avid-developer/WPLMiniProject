@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}History | Diet & Calorie Tracker{% endblock %}
+
+{% block content %}
+<section class="hero-card mb-4">
+    <div class="row g-4 align-items-end">
+        <div class="col-lg-8">
+            <p class="eyebrow">Meal history</p>
+            <h1 class="hero-title hero-title-sm">Review your meal log with filters and weekly summaries.</h1>
+            <p class="hero-copy">Use the date filter to narrow the list, then search meal names instantly with jQuery on the page.</p>
+        </div>
+    </div>
+    <form method="get" class="row g-3 mt-1">
+        <div class="col-md-4">
+            <label class="form-label" for="{{ filter_form.start_date.id_for_label }}">Start date</label>
+            {{ filter_form.start_date }}
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="{{ filter_form.end_date.id_for_label }}">End date</label>
+            {{ filter_form.end_date }}
+        </div>
+        <div class="col-md-4">
+            <label class="form-label" for="historySearch">Search meals</label>
+            <input id="historySearch" type="text" class="form-control" placeholder="Search by meal name or note">
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-3">
+            <button type="submit" class="btn btn-accent">Apply filter</button>
+            <a href="{% url 'history' %}" class="btn btn-outline-light">Reset</a>
+            <span class="micro-card">Visible entries: <strong id="visibleMealsCount">{{ summary.meal_count }}</strong></span>
+        </div>
+        {% if filter_form.non_field_errors %}
+            <div class="col-12">
+                <div class="alert alert-danger mb-0">{{ filter_form.non_field_errors }}</div>
+            </div>
+        {% endif %}
+    </form>
+</section>
+
+<section class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="app-card stat-card">
+            <span class="stat-label">Entries</span>
+            <strong>{{ summary.meal_count }}</strong>
+            <p>Total meal records in this view.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card stat-card">
+            <span class="stat-label">Calories</span>
+            <strong>{{ summary.total_calories }}</strong>
+            <p>Total calories across filtered meals.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card stat-card">
+            <span class="stat-label">Average</span>
+            <strong>{{ summary.average_calories }}</strong>
+            <p>Average calories per meal entry.</p>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4">
+    <div class="col-xl-4">
+        <div class="app-card h-100">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Summary</p>
+                    <h2 class="section-title">Weekly snapshot</h2>
+                </div>
+            </div>
+            {% if strongest_day %}
+                <div class="micro-card mb-3">
+                    Highest-calorie day: <strong>{{ strongest_day.day|date:"D, d M" }}</strong> with {{ strongest_day.total }} kcal.
+                </div>
+            {% endif %}
+            {% if weekly_summary %}
+                <div class="summary-list">
+                    {% for item in weekly_summary %}
+                        <div class="summary-item">
+                            <div>
+                                <strong>Week of {{ item.week_start|date:"d M Y" }}</strong>
+                                <p>{{ item.meals }} meals logged</p>
+                            </div>
+                            <span>{{ item.total }} kcal</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state compact-empty">
+                    <h3>No summary yet</h3>
+                    <p>As you log meals, your weekly totals will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-xl-8">
+        <div class="app-card">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Records</p>
+                    <h2 class="section-title">Meal entries</h2>
+                </div>
+            </div>
+            {% if meals %}
+                <div class="table-responsive">
+                    <table class="table align-middle app-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>Meal</th>
+                                <th>Calories</th>
+                                <th>Logged on</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for meal in meals %}
+                                <tr data-history-row data-search="{{ meal.name|lower }} {{ meal.notes|lower }} {{ meal.get_meal_type_display|lower }}">
+                                    <td>
+                                        <strong>{{ meal.name }}</strong>
+                                        <div class="table-meta">{{ meal.get_meal_type_display }} · {{ meal.quantity }} {{ meal.unit }}</div>
+                                        {% if meal.notes %}
+                                            <div class="table-note">{{ meal.notes }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ meal.calories }}</td>
+                                    <td>{{ meal.consumed_at|date:"d M Y, h:i A" }}</td>
+                                    <td class="text-end">
+                                        <a href="{% url 'meal_edit' meal.pk %}" class="table-link">Edit</a>
+                                        <a href="{% url 'meal_delete' meal.pk %}" class="table-link danger-link">Delete</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div id="historyEmptyState" class="empty-state compact-empty d-none">
+                    <h3>No visible entries</h3>
+                    <p>Try a different search term or clear the filter.</p>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <h3>No meals found</h3>
+                    <p>Log meals from the dashboard, then come back here to review your progress.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/history.js' %}"></script>
+{% endblock %}

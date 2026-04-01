@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Meal | Diet & Calorie Tracker{% endblock %}
+
+{% block content %}
+<section class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="app-card">
+            <p class="eyebrow">Delete entry</p>
+            <h1 class="section-title">Remove "{{ meal.name }}"?</h1>
+            <p class="section-copy">This deletes the meal from your history and updates your summaries immediately.</p>
+
+            <div class="micro-card mb-4">
+                {{ meal.get_meal_type_display }} · {{ meal.calories }} kcal · {{ meal.consumed_at|date:"d M Y, h:i A" }}
+            </div>
+
+            <form method="post" class="d-flex flex-wrap gap-3">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Delete meal</button>
+                <a href="{% url 'history' %}" class="btn btn-outline-dark">Cancel</a>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

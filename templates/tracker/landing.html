@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Diet & Calorie Tracker{% endblock %}
+
+{% block content %}
+<section class="hero-card mb-5">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <p class="eyebrow">Web Programming Lab Mini Project</p>
+            <h1 class="hero-title">Track meals, stay aware of calories, and build healthier habits without the mess.</h1>
+            <p class="hero-copy">
+                This Django mini project helps students and busy professionals log meals, set a daily calorie target,
+                review past entries, and watch progress update through a responsive dashboard.
+            </p>
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <a class="btn btn-accent btn-lg" href="{% url 'signup' %}">Start tracking</a>
+                <a class="btn btn-outline-light btn-lg" href="{% url 'login' %}">I already have an account</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="hero-metrics">
+                <div class="metric-card">
+                    <span class="metric-label">Daily goal</span>
+                    <strong>Custom calorie target</strong>
+                    <p>Set personal goals that match your routine.</p>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Quick actions</span>
+                    <strong>Fast meal logging</strong>
+                    <p>Use quick-add presets and HTML5 form inputs.</p>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Insights</span>
+                    <strong>Weekly progress view</strong>
+                    <p>See history filters, summaries, and a canvas chart.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4">
+    <div class="col-md-4">
+        <div class="app-card feature-card">
+            <p class="feature-number">01</p>
+            <h2 class="section-subtitle">Built with lab concepts</h2>
+            <p class="section-copy">HTML5 inputs, custom CSS, Bootstrap layout, jQuery events, AJAX, Django forms, and SQLite-backed data.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card feature-card">
+            <p class="feature-number">02</p>
+            <h2 class="section-subtitle">Useful in real life</h2>
+            <p class="section-copy">The app solves a practical problem: helping users stay mindful of what they eat through simple daily tracking.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card feature-card">
+            <p class="feature-number">03</p>
+            <h2 class="section-subtitle">Clean and responsive</h2>
+            <p class="section-copy">The interface adapts from laptop to mobile and keeps important actions available without clutter.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

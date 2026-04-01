@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard | Diet & Calorie Tracker{% endblock %}
+
+{% block content %}
+<section class="hero-card mb-4">
+    <div class="row g-4 align-items-end">
+        <div class="col-lg-8">
+            <p class="eyebrow">Daily dashboard</p>
+            <h1 class="hero-title hero-title-sm">Keep your food log sharp, {{ request.user.first_name|default:request.user.username }}.</h1>
+            <p class="hero-copy">Today is {{ today|date:"l, d F Y" }}. Add meals quickly, watch your goal progress, and stay aware of the week at a glance.</p>
+        </div>
+        <div class="col-lg-4">
+            <div class="goal-chip">
+                <span>Daily target</span>
+                <strong>{{ target.daily_target }} kcal</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="progress-panel mt-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+            <span class="small-label">{{ total_calories }} kcal logged today</span>
+            <span class="small-label">{{ progress_percent }}% of your target</span>
+        </div>
+        <div class="progress app-progress">
+            <div id="progressBar" class="progress-bar" style="width: {{ progress_percent_capped }}%;"></div>
+        </div>
+    </div>
+
+    <div class="preset-strip mt-4">
+        <span class="small-label d-block mb-2">Quick-add presets</span>
+        <div class="d-flex flex-wrap gap-2">
+            {% for preset in quick_presets %}
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-light preset-btn"
+                    data-name="{{ preset.label }}"
+                    data-type="{{ preset.meal_type }}"
+                    data-quantity="{{ preset.quantity }}"
+                    data-unit="{{ preset.unit }}"
+                    data-calories="{{ preset.calories }}"
+                >
+                    {{ preset.label }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="app-card stat-card">
+            <span class="stat-label">Today</span>
+            <strong>{{ total_calories }}</strong>
+            <p>Calories logged so far.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card stat-card">
+            <span class="stat-label">Goal</span>
+            <strong>{{ target.daily_target }}</strong>
+            <p>Target calories for the day.</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="app-card stat-card {% if is_over_target %}warning-card{% endif %}">
+            <span class="stat-label">{% if is_over_target %}Over by{% else %}Remaining{% endif %}</span>
+            <strong>{{ remaining_calories }}</strong>
+            <p>{% if is_over_target %}Calories above your target.{% else %}Calories left to hit your goal.{% endif %}</p>
+        </div>
+    </div>
+</section>
+
+<section class="row g-4">
+    <div class="col-xl-5">
+        <div class="app-card h-100">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Quick add</p>
+                    <h2 class="section-title">Log a meal</h2>
+                </div>
+            </div>
+            <form method="post" id="mealForm" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_meal">
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label class="form-label" for="{{ meal_form.name.id_for_label }}">Meal name</label>
+                        {{ meal_form.name }}
+                        <div class="form-error">{{ meal_form.name.errors }}</div>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label" for="{{ meal_form.meal_type.id_for_label }}">Meal type</label>
+                        {{ meal_form.meal_type }}
+                        <div class="form-error">{{ meal_form.meal_type.errors }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ meal_form.quantity.id_for_label }}">Quantity</label>
+                        {{ meal_form.quantity }}
+                        <div class="form-error">{{ meal_form.quantity.errors }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ meal_form.unit.id_for_label }}">Unit</label>
+                        {{ meal_form.unit }}
+                        <div class="form-error">{{ meal_form.unit.errors }}</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="{{ meal_form.calories.id_for_label }}">Calories</label>
+                        {{ meal_form.calories }}
+                        <div class="form-error">{{ meal_form.calories.errors }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="{{ meal_form.consumed_at.id_for_label }}">Consumed at</label>
+                        {{ meal_form.consumed_at }}
+                        <div class="form-error">{{ meal_form.consumed_at.errors }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="{{ meal_form.notes.id_for_label }}">Notes</label>
+                        {{ meal_form.notes }}
+                        <div class="form-error">{{ meal_form.notes.errors }}</div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-4">
+                    <div id="caloriePreview" class="micro-card">Preview: add calories to see a quick summary.</div>
+                    <button type="submit" class="btn btn-accent">Save meal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-xl-7">
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="app-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">Weekly chart</p>
+                            <h2 class="section-title">Calorie trend</h2>
+                        </div>
+                        <div class="micro-card">7-day average: {{ weekly_average }} kcal</div>
+                    </div>
+                    <canvas id="weeklyChart" data-url="{% url 'weekly_stats_api' %}" height="260"></canvas>
+                    <p class="section-copy mt-3 mb-0">Rendered with a Django JSON endpoint, jQuery AJAX, and the HTML5 canvas API.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="app-card h-100">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">Goal settings</p>
+                            <h2 class="section-title">Update target</h2>
+                        </div>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_goal">
+                        <label class="form-label" for="{{ goal_form.daily_target.id_for_label }}">Daily calorie target</label>
+                        {{ goal_form.daily_target }}
+                        <div class="form-error">{{ goal_form.daily_target.errors }}</div>
+                        <button type="submit" class="btn btn-outline-dark mt-3 w-100">Save target</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="app-card h-100">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">Today</p>
+                            <h2 class="section-title">Meals logged</h2>
+                        </div>
+                    </div>
+                    {% if todays_meals %}
+                        <div class="table-responsive">
+                            <table class="table align-middle app-table">
+                                <thead>
+                                    <tr>
+                                        <th>Meal</th>
+                                        <th>Calories</th>
+                                        <th>Time</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for meal in todays_meals %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ meal.name }}</strong>
+                                                <div class="table-meta">{{ meal.get_meal_type_display }} · {{ meal.quantity }} {{ meal.unit }}</div>
+                                            </td>
+                                            <td>{{ meal.calories }}</td>
+                                            <td>{{ meal.consumed_at|date:"h:i A" }}</td>
+                                            <td class="text-end">
+                                                <a href="{% url 'meal_edit' meal.pk %}" class="table-link">Edit</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <h3>No meals logged yet</h3>
+                            <p>Add your first meal entry and your dashboard will start filling up instantly.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

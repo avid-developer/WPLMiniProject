@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Sign Up | Diet & Calorie Tracker{% endblock %}
+
+{% block content %}
+<section class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="app-card auth-card">
+            <p class="eyebrow">Get started</p>
+            <h1 class="section-title">Create your calorie tracker account.</h1>
+            <p class="section-copy">Set your goal, add meals, and keep your food history organized in one place.</p>
+
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.first_name.id_for_label }}">Full name</label>
+                        {{ form.first_name }}
+                        <div class="form-error">{{ form.first_name.errors }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+                        {{ form.username }}
+                        <div class="form-error">{{ form.username.errors }}</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+                        {{ form.email }}
+                        <div class="form-error">{{ form.email.errors }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.password1.id_for_label }}">Password</label>
+                        {{ form.password1 }}
+                        <div class="form-error">{{ form.password1.errors }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.password2.id_for_label }}">Confirm password</label>
+                        {{ form.password2 }}
+                        <div class="form-error">{{ form.password2.errors }}</div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-accent w-100 mt-4">Create account</button>
+            </form>
+
+            <p class="auth-switch mt-4 mb-0">Already signed up? <a href="{% url 'login' %}">Log in.</a></p>
+        </div>
+    </div>
+</section>
+{% endblock %}
